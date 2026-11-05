@@ -3,8 +3,10 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_chroma import Chroma
+from langchain_openai import ChatOpenAI
+
+# Reuse the local database or build it from data/chunks.jsonl on Streamlit Cloud.
+from src.build_vector_db import get_or_build_vector_db
 
 
 # ============================================================
@@ -16,7 +18,7 @@ load_dotenv(PROJECT_ROOT / ".env")
 
 if not os.getenv("OPENAI_API_KEY"):
     raise ValueError(
-        "OPENAI_API_KEY is missing. Please check your .env file."
+        "OPENAI_API_KEY is missing. Configure .env locally or Streamlit Cloud secrets."
     )
 
 VECTOR_DB_PATH = PROJECT_ROOT / "chroma_db"
@@ -34,15 +36,9 @@ RETRIEVAL_K = 8
 # 2. INITIALISE EMBEDDINGS, VECTOR DATABASE AND LLM
 # ============================================================
 
-embeddings = OpenAIEmbeddings(
-    model=EMBEDDING_MODEL
-)
-
-vector_db = Chroma(
-    collection_name=COLLECTION_NAME,
-    embedding_function=embeddings,
-    persist_directory=str(VECTOR_DB_PATH)
-)
+# On a fresh cloud instance, this creates and embeds the chunks once.
+# On subsequent runs, it reuses the existing ChromaDB collection.
+vector_db = get_or_build_vector_db()
 
 llm = ChatOpenAI(
     model=LLM_MODEL,
@@ -709,10 +705,9 @@ def inspect_source_inventory():
     print("\n===== END OF INVENTORY =====")
 
 
-inspect_source_inventory()
-
-
 if __name__ == "__main__":
+
+    inspect_source_inventory()
 
     print("\n========================================")
     print("       BIZSTART SG RAG ENGINE")

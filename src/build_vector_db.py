@@ -1,5 +1,6 @@
 
 import json
+import os
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -8,117 +9,198 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 
 
-# --------------------------------------------------
-# 1. Set up paths and load environment variables
-# --------------------------------------------------
+# ============================================================
+# 1. PROJECT CONFIGURATION
+# ============================================================
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 CHUNKS_FILE = PROJECT_DIR / "data" / "chunks.jsonl"
 CHROMA_DIR = PROJECT_DIR / "chroma_db"
 
+COLLECTION_NAME = "bizstart_sg_knowledge"
+EMBEDDING_MODEL = "text-embedding-3-small"
+
+# Load local environment variables.
+# On Streamlit Cloud, OPENAI_API_KEY will be supplied
+# through Streamlit secrets/environment configuration.
 load_dotenv(PROJECT_DIR / ".env")
 
 
-# --------------------------------------------------
-# 2. Check that the input file exists
-# --------------------------------------------------
+# ============================================================
+# 2. LOAD PREPARED TEXT CHUNKS
+# ============================================================
 
-if not CHUNKS_FILE.exists():
-    raise FileNotFoundError(
-        f"Could not find the chunks file: {CHUNKS_FILE}"
+def load_documents():
+
+    if not CHUNKS_FILE.exists():
+        raise FileNotFoundError(
+            f"Missing chunks file: {CHUNKS_FILE}"
+        )
+
+    documents = []
+
+    with open(
+        CHUNKS_FILE,
+        "r",
+        encoding="utf-8",
+    ) as file:
+
+        for line in file:
+
+            if not line.strip():
+                continue
+
+            record = json.loads(line)
+
+            document = Document(
+                page_content=record["content"],
+                metadata={
+                    "source_id": record["source_id"],
+                    "agency": record["agency"],
+                    "topic": record["topic"],
+                    "document_title": record["document_title"],
+                    "url": record["url"],
+                    "chunk_index": record["chunk_index"],
+                },
+            )
+
+            documents.append(document)
+
+    if not documents:
+        raise ValueError(
+            "No text chunks were found in chunks.jsonl."
+        )
+
+    return documents
+
+
+# ============================================================
+# 3. INITIALISE EMBEDDING MODEL
+# ============================================================
+
+def get_embeddings():
+
+    if not os.getenv("OPENAI_API_KEY"):
+        raise RuntimeError(
+            "OPENAI_API_KEY is not configured. "
+            "Set it in your local .env file or "
+            "Streamlit Cloud secrets."
+        )
+
+    return OpenAIEmbeddings(
+        model=EMBEDDING_MODEL
     )
 
 
-# --------------------------------------------------
-# 3. Load the 93 text chunks
-# --------------------------------------------------
+# ============================================================
+# 4. GET OR BUILD VECTOR DATABASE
+# ============================================================
 
-print("Loading text chunks...")
+def get_or_build_vector_db():
 
-documents = []
+    embeddings = get_embeddings()
 
-with open(CHUNKS_FILE, "r", encoding="utf-8") as file:
-    for line in file:
-        record = json.loads(line)
+    vector_db = Chroma(
+        collection_name=COLLECTION_NAME,
+        embedding_function=embeddings,
+        persist_directory=str(CHROMA_DIR),
+    )
 
-        document = Document(
-            page_content=record["content"],
-            metadata={
-                "source_id": record["source_id"],
-                "agency": record["agency"],
-                "topic": record["topic"],
-                "document_title": record["document_title"],
-                "url": record["url"],
-                "chunk_index": record["chunk_index"],
-            },
+    # If the collection already contains documents,
+    # reuse the existing vector database.
+    existing_count = vector_db._collection.count()
+
+    if existing_count > 0:
+
+        print(
+            f"Reusing existing ChromaDB "
+            f"({existing_count} chunks)."
         )
 
-        documents.append(document)
+        return vector_db
 
-print(f"Loaded {len(documents)} chunks.")
+    print(
+        "ChromaDB is empty. "
+        "Building knowledge base from chunks.jsonl..."
+    )
 
+    documents = load_documents()
 
-# --------------------------------------------------
-# 4. Initialise the OpenAI embedding model
-# --------------------------------------------------
+    document_ids = [
+        (
+            f"{doc.metadata['source_id']}-"
+            f"{doc.metadata['chunk_index']}"
+        )
+        for doc in documents
+    ]
 
-print("\nInitialising OpenAI embedding model...")
+    # Generate embeddings and store the documents.
+    vector_db.add_documents(
+        documents=documents,
+        ids=document_ids,
+    )
 
-embeddings = OpenAIEmbeddings(
-    model="text-embedding-3-small"
-)
+    print(
+        f"ChromaDB initialised with "
+        f"{vector_db._collection.count()} chunks."
+    )
 
-
-# --------------------------------------------------
-# 5. Create the ChromaDB vector database
-# --------------------------------------------------
-
-print("\nGenerating embeddings and building ChromaDB...")
-
-vector_db = Chroma(
-    collection_name="bizstart_sg_knowledge",
-    embedding_function=embeddings,
-    persist_directory=str(CHROMA_DIR),
-)
-
-document_ids = [
-    f"{doc.metadata['source_id']}-{doc.metadata['chunk_index']}"
-    for doc in documents
-]
-
-vector_db.add_documents(
-    documents=documents,
-    ids=document_ids,
-)
-
-print("\nVector database created successfully!")
-print(f"Database location: {CHROMA_DIR}")
+    return vector_db
 
 
-# --------------------------------------------------
-# 6. Test a similarity search
-# --------------------------------------------------
+# ============================================================
+# 5. TEST VECTOR DATABASE
+# ============================================================
 
-print("\nTesting similarity search...")
+def test_vector_db(vector_db):
 
-test_question = (
-    "What are the steps to register a business in Singapore?"
-)
+    print("\nTesting similarity search...")
 
-results = vector_db.similarity_search(
-    test_question,
-    k=4,
-)
+    question = (
+        "What are the steps to register "
+        "a business in Singapore?"
+    )
 
-print(f"\nQuestion: {test_question}")
-print("\nTop 4 retrieved results:")
+    results = vector_db.similarity_search(
+        question,
+        k=4,
+    )
 
-for index, result in enumerate(results, start=1):
-    print(f"\n--- Result {index} ---")
-    print(f"Source: {result.metadata['source_id']}")
-    print(f"Agency: {result.metadata['agency']}")
-    print(f"Topic: {result.metadata['topic']}")
-    print(f"Content: {result.page_content[:500]}")
+    print(f"\nQuestion: {question}")
 
-print("\nRetrieval test completed.")
+    for index, result in enumerate(
+        results,
+        start=1,
+    ):
+
+        print(f"\n--- Result {index} ---")
+        print(
+            f"Source: {result.metadata['source_id']}"
+        )
+        print(
+            f"Agency: {result.metadata['agency']}"
+        )
+        print(
+            f"Content: {result.page_content[:300]}"
+        )
+
+    print("\nRetrieval test completed.")
+
+
+# ============================================================
+# 6. RUN DIRECTLY FOR LOCAL TESTING
+# ============================================================
+
+if __name__ == "__main__":
+
+    print("BizStart SG - Vector Database Setup")
+
+    vector_db = get_or_build_vector_db()
+
+    print(
+        f"Current database contains "
+        f"{vector_db._collection.count()} chunks."
+    )
+
+    test_vector_db(vector_db)
