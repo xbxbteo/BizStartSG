@@ -2,7 +2,7 @@
 import streamlit as st
 import sys
 from pathlib import Path
-
+from src.auth import require_login
 
 # ============================================================
 # 1. PROJECT CONFIGURATION AND IMPORTS
@@ -23,6 +23,7 @@ st.set_page_config(
     layout="wide"
 )
 
+require_login()
 
 # ============================================================
 # 2. PAGE HEADER

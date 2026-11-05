@@ -1,6 +1,6 @@
 
 import streamlit as st
-
+from src.auth import require_login
 # ==========================================
 # BIZSTART SG - MAIN APPLICATION
 # ==========================================
@@ -11,6 +11,8 @@ st.set_page_config(
     page_icon="🚀",
     layout="wide"
 )
+
+require_login()
 
 # Application header
 st.title("🚀 BizStart SG")

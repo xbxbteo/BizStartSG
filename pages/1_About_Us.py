@@ -1,6 +1,6 @@
 
 import streamlit as st
-
+from src.auth import require_login
 
 # ============================================================
 # 1. PAGE CONFIGURATION
@@ -12,6 +12,7 @@ st.set_page_config(
     layout="wide",
 )
 
+require_login()
 
 # ============================================================
 # 2. PAGE HEADER

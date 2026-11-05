@@ -3,6 +3,7 @@ import streamlit as st
 import sys
 import re
 from pathlib import Path
+from src.auth import require_login
 
 
 # ==========================================================
@@ -25,6 +26,7 @@ st.set_page_config(
     layout="wide"
 )
 
+require_login()
 
 # ==========================================================
 # 3. SOURCE CATALOGUE

@@ -1,5 +1,6 @@
 
 import streamlit as st
+from src.auth import require_login
 
 # ============================================================
 # Page configuration
@@ -10,6 +11,8 @@ st.set_page_config(
     page_icon="🛠️",
     layout="wide",
 )
+
+require_login()
 
 st.title("🛠️ Methodology")
 
