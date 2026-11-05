@@ -1,0 +1,28 @@
+
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# API keys and local secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Local ChromaDB vector database
+# We will configure cloud access separately.
+chroma_db/
+
+# Temporary files
+installed_packages.txt
+*.log
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.vscode/

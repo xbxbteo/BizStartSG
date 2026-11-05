@@ -1,0 +1,15 @@
+
+source_id,agency,topic,document_title,url,access_date,status
+ACRA-01,ACRA,Business Registration,Registering a business,https://www.acra.gov.sg/register/business/,2026-11-03,Pending
+ACRA-02,ACRA,Eligibility,Understanding requirements and eligibility,https://www.acra.gov.sg/register/business/requirements-eligibility/,2026-11-03,Pending
+ACRA-03,ACRA,Business Structures,Choosing a business structure,https://www.acra.gov.sg/register/business/choosing-business-structure/,2026-11-03,Pending
+ACRA-04,ACRA,Post Registration,Post-registration guide for local companies,https://www.acra.gov.sg/register/business/after-registering/local-company/,2026-11-03,Pending
+GB-01,GoBusiness,Business Licensing,GoBusiness official portal,https://www.gobusiness.gov.sg/,2026-11-03,Pending
+IRAS-01,IRAS,Taxation,Basic guide for self-employed individuals,https://www.iras.gov.sg/taxes/individual-income-tax/self-employed-and-partnerships/tax-obligations-of-self-employed-persons/basic-guide-for-self-employed-persons,2026-11-03,Pending
+IRAS-02,IRAS,Corporate Tax,Basic guide to corporate income tax for companies,https://www.iras.gov.sg/taxes/corporate-income-tax/basics-of-corporate-income-tax/basic-guide-to-corporate-income-tax-for-companies/,2026-11-03,Pending
+MOM-01,MOM,Employment,Who is entitled to CPF contributions,https://www.mom.gov.sg/employment-practices/central-provident-fund/cpf-contributions,2026-11-03,Pending
+SFA-01,SFA,Home-Based Food Business,Requirements for Home-based Food Businesses,https://www.sfa.gov.sg/food-retail/businesses-that-currently-do-not-need-licence-permit/home-based-food-businesses/requirements-for-home-based-food-businesses,2026-11-03,Pending
+SFA-02,SFA,Home-Based Business Scheme,About HDB/URA Home-based Business Scheme,https://www.sfa.gov.sg/food-retail/businesses-that-currently-do-not-need-licence-permit/home-based-food-businesses/about-hdb-ura-home-based-business-scheme,2026-11-03,Pending
+SFA-03,SFA,Food Shop Licensing,Requirements for Licence / Permit for Food Retail,https://www.sfa.gov.sg/food-retail/licence-permit/requirements-for-licence-permit-for-food-retail,2026-11-03,Pending
+IRAS-03,IRAS,Tax Record Keeping,Keeping proper records and accounts,https://www.iras.gov.sg/taxes/individual-income-tax/self-employed-and-partnerships/keeping-proper-records-and-accounts,2026-11-03,Pending
+IRAS-04,IRAS,Business Income Tax,Calculating business income,https://www.iras.gov.sg/taxes/individual-income-tax/self-employed-and-partnerships/calculating-my-business-income/calculating-business-income,2026-11-03,Pending
