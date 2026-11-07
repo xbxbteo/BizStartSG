@@ -493,6 +493,10 @@ if question:
         "content": answer,
         "sources": sources
     })
+    
+    # Refresh the page so the Clear conversation button
+    # reflects the updated session state.
+    st.rerun()
 
 
 # ============================================================
